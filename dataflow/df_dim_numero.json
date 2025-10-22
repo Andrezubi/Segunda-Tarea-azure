@@ -1,0 +1,54 @@
+{
+	"name": "df_dim_numero",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_tabla_llamadas",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_silver_tabla_datos",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "union1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          numero as string,",
+				"          imei as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT numero, imei FROM silver.datos',",
+				"     format: 'query') ~> source1",
+				"source(output(",
+				"          numero as string,",
+				"          imei as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT numero_a AS numero, imei_a AS imei FROM silver.llamadas \\nUNION\\nSELECT DISTINCT numero_b AS numero, imei_b AS imei FROM silver.llamadas',",
+				"     format: 'query') ~> source2",
+				"source1 union(byName: true)~> union1"
+			]
+		}
+	}
+}
