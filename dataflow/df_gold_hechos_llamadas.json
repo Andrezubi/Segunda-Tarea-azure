@@ -1,0 +1,195 @@
+{
+	"name": "df_gold_hechos_llamadas",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_tabla_llamadas",
+						"type": "DatasetReference"
+					},
+					"name": "tablaSilver"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_fecha",
+						"type": "DatasetReference"
+					},
+					"name": "dimFecha"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_numero",
+						"type": "DatasetReference"
+					},
+					"name": "dimNumero"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_radiobase",
+						"type": "DatasetReference"
+					},
+					"name": "dimRadiobase"
+				}
+			],
+			"sinks": [
+				{
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "lookup3"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "lookup4"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "lookup5"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          servicio as string,",
+				"          registro as string,",
+				"          numero_a as string,",
+				"          imei_a as string,",
+				"          rbs_utilizada_a as string,",
+				"          celda_a as string,",
+				"          latitud_a as decimal(18,0),",
+				"          longitud_a as decimal(18,0),",
+				"          numero_b as string,",
+				"          imei_b as string,",
+				"          rbs_utilizada_b as string,",
+				"          celda_b as string,",
+				"          latitud_b as decimal(18,0),",
+				"          longitud_b as decimal(18,0),",
+				"          fecha as timestamp,",
+				"          duracion as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> tablaSilver",
+				"source(output(",
+				"          id_fecha as integer,",
+				"          fecha as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimFecha",
+				"source(output(",
+				"          id_numero as integer,",
+				"          numero as string,",
+				"          imei as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimNumero",
+				"source(output(",
+				"          id_radiobase as integer,",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,6),",
+				"          longitud as decimal(10,6)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimRadiobase",
+				"tablaSilver, dimFecha lookup(tablaSilver@fecha == dimFecha@fecha,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1, dimNumero lookup(numero_a == numero",
+				"     && imei_a == imei,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup2",
+				"select1, dimNumero lookup(numero_b == numero",
+				"     && imei_b == imei,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup3",
+				"lookup2 select(mapColumn(",
+				"          servicio,",
+				"          registro,",
+				"          numero_a,",
+				"          imei_a,",
+				"          rbs_utilizada_a,",
+				"          celda_a,",
+				"          latitud_a,",
+				"          longitud_a,",
+				"          numero_b,",
+				"          imei_b,",
+				"          rbs_utilizada_b,",
+				"          celda_b,",
+				"          latitud_b,",
+				"          longitud_b,",
+				"          fecha = tablaSilver@fecha,",
+				"          duracion,",
+				"          id_fecha,",
+				"          id_numero_a = id_numero",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"lookup3, dimRadiobase lookup(rbs_utilizada_a == radiobase",
+				"     && celda_a == celda,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup4",
+				"lookup4 select(mapColumn(",
+				"          servicio,",
+				"          registro,",
+				"          numero_a,",
+				"          imei_a,",
+				"          rbs_utilizada_a,",
+				"          celda_a,",
+				"          latitud_a,",
+				"          longitud_a,",
+				"          numero_b,",
+				"          imei_b,",
+				"          rbs_utilizada_b,",
+				"          celda_b,",
+				"          latitud_b,",
+				"          longitud_b,",
+				"          fecha,",
+				"          duracion,",
+				"          id_fecha,",
+				"          id_numero_a,",
+				"          id_numero_b = id_numero,",
+				"          id_radiobase_a = id_radiobase",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2, dimRadiobase lookup(rbs_utilizada_b == radiobase",
+				"     && celda_b == celda,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup5",
+				"lookup5 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
+			]
+		}
+	}
+}
