@@ -22,7 +22,7 @@
 					"scripts": [
 						{
 							"type": "NonQuery",
-							"text": "Delete From gold.dim_fecha\r\nDelete From gold.dim_numero\r\nDelete From gold.dim_radiobase\r\nDelete From gold.dim_servicio\r\nDelete From gold.dim_registro\r\nDelete From gold.hechos_llamadas\r\nDelete From gold.hecho_datos"
+							"text": "Delete From gold.dim_fecha\nDelete From gold.dim_numero\nDelete From gold.dim_radiobase\nDelete From gold.dim_servicio\nDelete From gold.dim_registro\nDelete From gold.hechos_llamadas\nDelete From gold.hechos_datos"
 						}
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
