@@ -1,5 +1,5 @@
 {
-	"name": "df_dim_numero",
+	"name": "df_dim_radiobase",
 	"properties": {
 		"folder": {
 			"name": "Gold"
@@ -25,7 +25,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ds_dim_numero",
+						"referenceName": "ds_dim_radiobase",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
@@ -38,30 +38,36 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          numero as string,",
-				"          imei as string",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,6),",
+				"          longitud as decimal(10,6)",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT DISTINCT numero, imei FROM silver.datos',",
+				"     query: 'SELECT DISTINCT rbs_utilizada as radiobase, celda, latitud, longitud FROM silver.datos\\n',",
 				"     format: 'query') ~> source1",
 				"source(output(",
-				"          numero as string,",
-				"          imei as string",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,6),",
+				"          longitud as decimal(10,6)",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT DISTINCT numero_a AS numero, imei_a AS imei FROM silver.llamadas \\nUNION\\nSELECT DISTINCT numero_b AS numero, imei_b AS imei FROM silver.llamadas',",
+				"     query: 'SELECT DISTINCT rbs_utilizada_a as radiobase, celda_a as celda, latitud_a as latitud, longitud_a as longitud FROM silver.llamadas\\nUNION\\nSELECT DISTINCT rbs_utilizada_b, celda_b, latitud_b, longitud_b FROM silver.llamadas',",
 				"     format: 'query') ~> source2",
 				"source1, source2 union(byName: true)~> union1",
 				"union1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
-				"          id_numero as integer,",
-				"          numero as string,",
-				"          imei as string",
+				"          id_radiobase as integer,",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,6),",
+				"          longitud as decimal(10,6)",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
