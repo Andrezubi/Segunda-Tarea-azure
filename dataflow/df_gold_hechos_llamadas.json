@@ -34,10 +34,28 @@
 						"type": "DatasetReference"
 					},
 					"name": "dimRadiobase"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_registro",
+						"type": "DatasetReference"
+					},
+					"name": "dimRegistro"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dim_servicio",
+						"type": "DatasetReference"
+					},
+					"name": "dimServicio"
 				}
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "ds_gold_hechos_llamadas",
+						"type": "DatasetReference"
+					},
 					"name": "sink1"
 				}
 			],
@@ -62,6 +80,12 @@
 				},
 				{
 					"name": "lookup5"
+				},
+				{
+					"name": "lookup6"
+				},
+				{
+					"name": "lookup7"
 				}
 			],
 			"scriptLines": [
@@ -115,6 +139,22 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> dimRadiobase",
+				"source(output(",
+				"          id_registro as integer,",
+				"          registro as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimRegistro",
+				"source(output(",
+				"          id_servicio as integer,",
+				"          servicio as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimServicio",
 				"tablaSilver, dimFecha lookup(tablaSilver@fecha == dimFecha@fecha,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -185,10 +225,45 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup5",
-				"lookup5 sink(allowSchemaDrift: true,",
+				"lookup5, dimRegistro lookup(select2@registro == dimRegistro@registro,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup6",
+				"lookup6, dimServicio lookup(select2@servicio == dimServicio@servicio,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup7",
+				"lookup7 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          id_llamada as integer,",
+				"          duracion as timestamp,",
+				"          id_servicio as integer,",
+				"          id_registro as integer,",
+				"          id_numera_a as integer,",
+				"          id_radiobase_a as integer,",
+				"          id_numero_b as integer,",
+				"          id_radiobase_b as integer,",
+				"          id_fecha as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1"
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          duracion,",
+				"          id_servicio,",
+				"          id_registro,",
+				"          id_numera_a = id_numero_a,",
+				"          id_radiobase_a,",
+				"          id_numero_b,",
+				"          id_radiobase_b = id_radiobase,",
+				"          id_fecha",
+				"     )) ~> sink1"
 			]
 		}
 	}
